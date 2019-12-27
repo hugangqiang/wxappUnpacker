@@ -5,14 +5,14 @@
   "main": "wuWxapkg.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qwerty472123/wxappUnpacker.git"
+    "url": "git+https://github.com/hugangqiang/wxappUnpacker.git"
   },
-  "author": "qwerty472123",
+  "author": "hugangqiang",
   "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/qwerty472123/wxappUnpacker/issues"
+    "url": "https://github.com/hugangqiang/wxappUnpacker/issues"
   },
-  "homepage": "https://github.com/qwerty472123/wxappUnpacker#readme",
+  "homepage": "https://github.com/hugangqiang/wxappUnpacker#readme",
   "dependencies": {
     "css-tree": "^1.0.0-alpha.28",
     "cssbeautify": "^0.3.1",

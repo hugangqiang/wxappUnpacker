@@ -65,10 +65,14 @@ function doWxss(dir,cb){
 	}
 	function runVM(name, code) {
 		let wxAppCode = {}, handle = { cssFile: name };
+		console.log(handle)
 		let gg = new GwxCfg();
 		let tsandbox = { $gwx: GwxCfg.prototype["$gwx"], __mainPageFrameReady__: GwxCfg.prototype["$gwx"], __wxAppCode__: wxAppCode, setCssToHead: cssRebuild.bind(handle) };
 		let vm = new VM({ sandbox: tsandbox });
 		vm.run(code);
+		
+		wxAppCode = vm._context.__wxAppCode__;
+		//console.log(code)
 		for (let name in wxAppCode) {
 			if (name.endsWith(".wxss")) {
 				handle.cssFile = path.resolve(frameName, "..", name);
@@ -86,18 +90,22 @@ function doWxss(dir,cb){
 	function preRun(dir, frameFile, mainCode, files, cb) {
 		wu.addIO(cb);
 		runList[path.resolve(dir, "./app.wxss")] = mainCode;
-		for (let name of files) if (name != frameFile) {
-			wu.get(name, code => {
-				code = code.slice(0, code.indexOf("\n"));
-				if (code.indexOf("setCssToHead") > -1) runList[name] = code.slice(code.indexOf("setCssToHead"));
-			});
+		for (let name of files) {
+			if (name != frameFile) {
+				wu.get(name, code => {
+					code = code.slice(0, code.indexOf("\n"));
+					if (code.indexOf("setCssToHead") > -1) runList[name] = code.slice(code.indexOf("setCssToHead"));
+					//if (code.indexOf("__wxAppCode__") > -1) runList[name.slice(0,name.indexOf('.html'))+'.wxss'] = code.slice(code.indexOf("__wxAppCode__"));
+				});
+			}
 		}
 	}
 	function runOnce() {
+		
 		// for (let name in runList) runVM(name, runList[name]);
 		for (let name in runList) {
 			// console.log(name, runList[name]);
-			var start = `var window = window || {}; var __pageFrameStartTime__ = Date.now(); 	var __webviewId__; 	var __wxAppCode__={}; 	var __mainPageFrameReady__ = function(){}; 	var __WXML_GLOBAL__={entrys:{},defines:{},modules:{},ops:[],wxs_nf_init:undefined,total_ops:0}; 	var __vd_version_info__=__vd_version_info__||{};	 
+			var start = `var window = window || {}; var __pageFrameStartTime__ = Date.now(); 	var __webviewId__; 	var __wxAppCode__={}; 	var __mainPageFrameReady__ = function(){}; 	var __WXML_GLOBAL__={entrys:{},defines:{},modules:{},ops:[],wxs_nf_init:undefined,total_ops:0}; 	var __vd_version_info__=__vd_version_info__||{delayedGwx:'1'};	 
 			
 			$gwx=function(path,global){
 				if(typeof global === 'undefined') global={};if(typeof __WXML_GLOBAL__ === 'undefined') {__WXML_GLOBAL__={};
@@ -187,6 +195,7 @@ function doWxss(dir,cb){
 				runOnce();
 				onlyTest=false;
 				console.log("Import count info: %j",importCnt);
+				
 				for(let id in pureData)if(!actualPure[id]){
 					if(!importCnt[id])importCnt[id]=0;
 					if(importCnt[id]<=1){
@@ -202,10 +211,12 @@ function doWxss(dir,cb){
 				console.log("Guess wxss(first turn) done.\nGenerate wxss(second turn)...");
 				runOnce()
 				console.log("Generate wxss(second turn) done.\nSave wxss...");
+				
 				for(let name in result)wu.save(wu.changeExt(name,".wxss"),transformCss(result[name]));
 				let delFiles={};
 				for(let name of files)delFiles[name]=8;
 				delFiles[frameFile]=4;
+				
 				cb(delFiles);
 			});
 		});
